@@ -14,8 +14,9 @@ namespace CrudMVC.Controllers
             {
                 var products = new List<ProductModel>
                 {
-                    new ProductModel { Id = 1, Name = "Producto A", Price = 100, Description = "Descripcion A", DateExpiration = DateTime.Today.AddMonths(1) },
-                    new ProductModel { Id = 2, Name = "Producto B", Price = 200, Description = "Descripcion B", DateExpiration = DateTime.Today.AddMonths(2) }
+                    new ProductModel { Id = 1, Name = "Producto A", Price = 100, Description = "Descripcion A", DateExpiration = DateTime.Today.AddMonths(1), Active = true },
+                    new ProductModel { Id = 2, Name = "Producto B", Price = 200, Description = "Descripcion B", DateExpiration = DateTime.Today.AddMonths(2), Active = true },
+
                 };
                 Session["Products"] = products;
             }
@@ -25,7 +26,7 @@ namespace CrudMVC.Controllers
         // GET: Products
         public ActionResult Index()
         {
-            var products = GetProductsFromSession();
+            var products = GetProductsFromSession().Where(p => p.Active).ToList();
             return View(products);
         }
 
@@ -104,6 +105,15 @@ namespace CrudMVC.Controllers
             return View(product);
         }
 
+
+        private void PrintProductsToDebug(List<ProductModel> products)
+        {
+            foreach (var p in products)
+            {
+                System.Diagnostics.Debug.WriteLine($"Id: {p.Id}, Name: {p.Name}, Active: {p.Active}, Price: {p.Price}, Expiration: {p.DateExpiration}");
+            }
+        }
+
         // POST: Products/Delete/5
         [HttpPost, ActionName("Delete")]
         public ActionResult DeleteConfirmed(int id)
@@ -114,8 +124,12 @@ namespace CrudMVC.Controllers
                 var product = products.FirstOrDefault(p => p.Id == id);
                 if (product == null) return HttpNotFound();
 
-                products.Remove(product);
+                product.Active = false;
+
                 Session["Products"] = products;
+
+                PrintProductsToDebug(products);
+
                 return RedirectToAction("Index");
             }
             catch
